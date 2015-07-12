@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#F50057</color>
+    <color name="colorPrimaryDark">#C51162</color>
+    <color name="textColorPrimary">#FFFFFF</color>
+    <color name="windowBackground">#FFFFFF</color>
+    <color name="navigationBarColor">#000000</color>
+    <color name="colorAccent">#FF80AB</color>
+    <color name="tabsScrollColor">#8a140e</color>
+
+    <!-- START Added for the custom search bar -->
+    <color name="transparency_color">#ccffffff</color>
+    <color name="primaryColor">#FAFAFA</color>
+
+    <color name="textPrimaryColor">#828282</color>
+    <color name="textHintColor">#FAFAFA</color>
+
+    <color name="rippleEffectMaskColor">#FAFAFA</color>
+    <color name="rippleEffectWaveColor">#bbbbbb</color>
+    <!-- END Added for the custom search bar -->
+</resources>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/result_item_height"
+    android:gravity="center_vertical"
+    android:padding="12dp"
+    android:focusable="true"
+    android:clickable="true" >
+
+    <ImageView
+        android:id="@+id/rd_left_icon"
+        android:layout_width="@dimen/artist_image_width"
+        android:layout_height="@dimen/artist_image_height"
+        android:layout_marginTop="3dp"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="5dp"
+        android:src="@drawable/no_artist_image" />
+
+    <LinearLayout
+        android:id="@+id/rd_wrapper"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:layout_toRightOf="@+id/rd_left_icon"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="20dp">
+
+        <TextView
+            android:id="@+id/rd_header_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/textPrimaryColor"
+            android:text="Header"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            android:maxLines="1"/>
+
+        <TextView
+            android:id="@+id/rd_sub_header_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/textPrimaryColor"
+            android:text="Sub Header"
+            android:textSize="14dp"
+            android:maxLines="1" />
+
+
+    </LinearLayout>
+
+
+    <!-- ImageView
+        android:id="@+id/rd_right_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:src="@drawable/ic_action_arrow_left_top"/ -->
+</RelativeLayout>

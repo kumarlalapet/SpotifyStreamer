@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/custombar_wrapper"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/bar_height"
+    android:layout_gravity="center_vertical"
+    android:elevation="4dp"
+    android:background="@color/primaryColor">
+
+    <com.andexert.library.RippleView
+        android:id="@+id/dismiss_ripple_view"
+        android:layout_width="55dp"
+        android:layout_height="fill_parent"
+        app:rv_color="@color/rippleEffectWaveColor"
+        app:rv_rippleDuration="200"
+        app:rv_centered="true">
+
+
+    <RelativeLayout
+        android:id="@+id/custombar_return_wrapper"
+        android:layout_width="55dp"
+        android:layout_height="fill_parent"
+        android:gravity="center_vertical"
+        android:focusable="true"
+        android:clickable="true" >
+
+
+        <ImageView
+            android:id="@+id/custombar_return"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true"
+            android:background="#00000000"
+            android:src="@drawable/ic_action_arrow_left"/>
+
+
+
+    </RelativeLayout>
+
+    </com.andexert.library.RippleView>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toRightOf="@id/dismiss_ripple_view"
+        android:layout_marginRight="60dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp">
+
+        <EditText
+            android:id="@+id/custombar_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="@string/search_hint"
+            android:textColor="@color/textPrimaryColor"
+            android:singleLine="true"
+            android:imeOptions="actionSearch"
+            android:background="#00000000">
+            <requestFocus/>
+        </EditText>
+
+    </android.support.design.widget.TextInputLayout>
+
+    <RelativeLayout
+        android:id="@+id/custombar_mic_wrapper"
+        android:layout_width="55dp"
+        android:layout_height="fill_parent"
+        android:layout_alignParentRight="true"
+        android:gravity="center_vertical"
+        android:focusable="true"
+        android:clickable="true" >
+
+        <com.andexert.library.RippleView
+            android:id="@+id/mic_ripple_view"
+            android:layout_width="55dp"
+            android:layout_height="fill_parent"
+            app:rv_color="@color/rippleEffectWaveColor"
+            app:rv_centered="true"
+            app:rv_rippleDuration="200">
+
+        <ImageView
+            android:id="@+id/custombar_mic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true"
+            android:background="#00000000"
+            android:src="@drawable/ic_action_mic"/>
+
+        </com.andexert.library.RippleView>
+
+    </RelativeLayout>
+</RelativeLayout>

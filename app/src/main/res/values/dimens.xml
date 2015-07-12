@@ -1,0 +1,30 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!-- START Added for custom search bar implementation -->
+    <dimen name="bar_height">56dp</dimen>
+    <dimen name="search_text_size">16dp</dimen>
+
+    <dimen name="result_item_height">70dp</dimen>
+    <dimen name="result_item_header_text_size">16dp</dimen>
+    <dimen name="result_item_subheader_text_size">14dp</dimen>
+    <!-- END Added for custom search bar implementation -->
+
+    <dimen name="artist_image_width">50dp</dimen>
+    <dimen name="artist_image_height">50dp</dimen>
+
+    <!-- for the fab play button -->
+    <dimen name="fab_margin">16dp</dimen>
+
+    <dimen name="artist_header_image_height">350dp</dimen>
+    <dimen name="artist_header_image_weight">350dp</dimen>
+
+    <dimen name="toolbar_top_margin">48dp</dimen>
+    <dimen name="toolbar_top_margin_neg">-48dp</dimen>
+
+    <dimen name="playlist_image_width">150dp</dimen>
+    <dimen name="playlist_image_height">150dp</dimen>
+
+</resources>

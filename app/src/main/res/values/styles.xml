@@ -1,0 +1,35 @@
+<resources>
+
+    <style name="MyMaterialTheme" parent="MyMaterialTheme.Base" />
+
+    <style name="MyMaterialTheme.Base" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <!-- Base application theme. -->
+    <!-- style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        < Customize your theme here. -->
+    <!-- /style -->
+
+    <!-- START theme for custom search bar component -->
+    <style name="MySearchbarTheme" parent="MySearchbarTheme.Base">
+        <item name="colorPrimaryDark">@color/textPrimaryColor</item>
+    </style>
+
+    <style name="MySearchbarTheme.Base" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation</item>
+        <item name="android:textColorPrimary">@color/textPrimaryColor</item>
+    </style>
+
+    <style name="ArtistsTopTracksTheme" parent="MyMaterialTheme">
+    </style>
+
+    <!-- END theme for custom search bar component -->
+</resources>

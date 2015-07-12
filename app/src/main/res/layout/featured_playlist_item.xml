@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="220dp"
+    android:gravity="center_vertical"
+    android:padding="12dp"
+    android:focusable="true"
+    android:clickable="true" >
+
+    <ImageView
+        android:id="@+id/fp_playlist_cover"
+        android:layout_width="@dimen/playlist_image_width"
+        android:layout_height="@dimen/playlist_image_height"
+        android:layout_centerVertical="true"
+        android:src="@drawable/ic_no_playlist_image" />
+
+    <TextView
+        android:id="@+id/fp_playlist_name_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/textPrimaryColor"
+        android:text="Header"
+        android:textSize="16dp"
+        android:textStyle="bold"
+        android:maxLines="1"/>
+
+    <TextView
+        android:id="@+id/fp_track_number_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/textPrimaryColor"
+        android:text="Sub Header"
+        android:layout_gravity="center"
+        android:textSize="14dp"
+        android:maxLines="1" />
+
+</LinearLayout>
