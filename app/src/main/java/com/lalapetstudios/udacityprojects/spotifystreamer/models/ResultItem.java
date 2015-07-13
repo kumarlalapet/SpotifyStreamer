@@ -38,11 +38,11 @@ public class ResultItem implements Parcelable {
     }
 
     public void setLeftIcon(Object leftIcon) {
-        if (leftIcon != null && leftIcon != 0 && leftIcon != -1) {
+        //if (leftIcon != null && leftIcon != 0 && leftIcon != -1) {
             this.leftIcon = leftIcon;
-        } else {
-            this.leftIcon = R.drawable.no_artist_image;
-        }
+        //} else {
+        //    this.leftIcon = R.drawable.no_artist_image;
+        //}
     }
 
     public Integer getRightIcon() {
