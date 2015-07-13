@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.LinearLayoutManager;
@@ -48,6 +49,7 @@ public class ArtistDetailActivity extends AppCompatActivity implements OnAsyncTa
     TopTracksRecyclerAdapter topTracksRecyclerAdapter;
     ResultItem item;
     ArrayList<TrackDetailsModel> mResultList;
+    View rootView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +112,7 @@ public class ArtistDetailActivity extends AppCompatActivity implements OnAsyncTa
                     });
         }
 
+        rootView = findViewById(R.id.artisti_detail_rootview);
 
         recyclerView = (RecyclerView) findViewById(R.id.scrollableview);
 
@@ -123,6 +126,7 @@ public class ArtistDetailActivity extends AppCompatActivity implements OnAsyncTa
         } else {
             mapResultsFromTopTracksContentProviderToList();
         }
+
     }
 
     @Override
@@ -158,8 +162,14 @@ public class ArtistDetailActivity extends AppCompatActivity implements OnAsyncTa
     }
 
     @Override
-    public void onAsyncTaskCompleted() {
-        this.createTopTracksRecyclerAdapter();
+    public void onAsyncTaskCompleted(boolean pErrorFlag) {
+        if(pErrorFlag) {
+            Snackbar
+                    .make(rootView, R.string.no_interent_connection_text, Snackbar.LENGTH_LONG)
+                    .show();
+        } else {
+            this.createTopTracksRecyclerAdapter();
+        }
     }
 
     private void createTopTracksRecyclerAdapter() {
@@ -173,12 +183,19 @@ public class ArtistDetailActivity extends AppCompatActivity implements OnAsyncTa
             @Override
             protected void onPostExecute(ArrayList resultList) {
                 mResultList = resultList;
-                onAsyncTaskCompleted();
+                boolean errorFlag = resultList == null ? true : false;
+                onAsyncTaskCompleted(errorFlag);
             }
 
             @Override
             protected ArrayList doInBackground(Void[] params) {
-                Cursor results = results = queryTopTracksProvider();
+                Cursor results = null;
+                try {
+                    results = queryTopTracksProvider();
+                } catch(Exception ex) {
+                    Log.e(TAG, "Issues in getting data from provider");
+                    return null;
+                }
                 ArrayList<TrackDetailsModel> resultList = new ArrayList<>();
 
                 Integer idIdx = results.getColumnIndex(TopTracksByArtistContentProvider.ID);

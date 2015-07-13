@@ -4,9 +4,11 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +30,7 @@ import java.util.List;
 public class NewReleasesFragment extends Fragment implements OnAsyncTaskCompletedInterface {
 
     private static final String NEW_RELEASES_MODEL = "NEW_RELEASES_MODEL";
+    private static final String TAG = NewReleasesFragment.class.getName();
 
     RecyclerView recyclerView;
     NewReleasesRecyclerAdapter nrRecyclerAdapter;
@@ -60,12 +63,18 @@ public class NewReleasesFragment extends Fragment implements OnAsyncTaskComplete
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(NEW_RELEASES_MODEL,mResultList);
+        outState.putParcelableArrayList(NEW_RELEASES_MODEL, mResultList);
     }
 
     @Override
-    public void onAsyncTaskCompleted() {
-        this.createNewReleasesRecyclerAdapter();
+    public void onAsyncTaskCompleted(boolean pErrorFlag) {
+        if(pErrorFlag) {
+            Snackbar
+                    .make(this.getView(), R.string.no_interent_connection_text, Snackbar.LENGTH_LONG)
+                    .show();
+        } else {
+            this.createNewReleasesRecyclerAdapter();
+        }
     }
 
     private void createNewReleasesRecyclerAdapter() {
@@ -78,12 +87,19 @@ public class NewReleasesFragment extends Fragment implements OnAsyncTaskComplete
             @Override
             protected void onPostExecute(ArrayList resultList) {
                 mResultList = resultList;
-                onAsyncTaskCompleted();
+                boolean errorFlag = resultList == null ? true : false;
+                onAsyncTaskCompleted(errorFlag);
             }
 
             @Override
             protected ArrayList doInBackground(Void[] params) {
-                Cursor results = results = queryNewReleasesProvider();
+                Cursor results = null;
+                try {
+                    results = queryNewReleasesProvider();
+                } catch(Exception ex) {
+                    Log.e(TAG, "Issues in getting data from provider");
+                    return null;
+                }
                 ArrayList<NewReleasesModel> resultList = new ArrayList<>();
 
                 Integer idIdx = results.getColumnIndex(NewReleasesContentProvider.ID);

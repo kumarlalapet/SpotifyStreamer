@@ -13,12 +13,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.SearchRecentSuggestions;
 import android.speech.RecognizerIntent;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -66,12 +68,13 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
     private String providerName;
     private String providerAuthority;
     private String searchableActivity;
-    private Boolean isRecentSuggestionsProvider = Boolean.FALSE;
+    //private Boolean isRecentSuggestionsProvider = Boolean.FALSE;
     private int currentapiVersion = 0;
     private RippleView dismissRippleView;
     private RippleView micRippleView;
     ArrayList<ResultItem> mResultList;
     Bundle mSavedInstaneState;
+    View rootView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,14 +104,6 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
         searchResultList.setLayoutManager(linearLayoutManager);
         searchResultList.setItemAnimator(new DefaultItemAnimator());
 
-        //TODO - see below if we uncomment below two line the initial search will not show the list Instead keep the third line
-        //SearchAdapter adapter = new SearchAdapter(new ArrayList<ResultItem>());
-        //searchResultList.setAdapter(adapter);
-        if (isRecentSuggestionsProvider) {
-            // Provider is descendant of SearchRecentSuggestionsProvider **/
-            mapResultsFromRecentProviderToList();
-        }
-
         //this.searchInput.setMaxLines(1);
 
         implementSearchTextListener();
@@ -124,7 +119,7 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
             }
         }
 
-
+        rootView = findViewById(R.id.custom_searchable_wrapper);
     }
 
     // Receives the intent with the speech-to-text information and sets it to the InputText
@@ -154,13 +149,9 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
         TextView.OnEditorActionListener searchListener = new TextView.OnEditorActionListener() {
             public boolean onEditorAction(TextView exampleView, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    if (isRecentSuggestionsProvider) {
-                        sendSearchIntent();
-                    } else {
                         InputMethodManager imm = (InputMethodManager)getSystemService(
                                 Context.INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(exampleView.getWindowToken(), 0);
-                    }
                 }
                 return true;
             }
@@ -174,11 +165,6 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
 
                 query = searchInput.getText().toString();
 
-                if (isRecentSuggestionsProvider) {
-                    // Provider is descendant of SearchRecentSuggestionsProvider **/
-                    mapResultsFromRecentProviderToList();
-                } else {
-                    // Provider is custom and shall follow the contract
                     boolean usedFromBundle = false;
                     if (mSavedInstaneState != null) {
                         String previousQuery = mSavedInstaneState.getString(RESULT_ITEM_MODEL_QUERY);
@@ -196,7 +182,6 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
                     if (!usedFromBundle) {
                         mapResultsFromCustomProviderToList();
                     }
-                }
 
                 if (!"".equals(searchInput.getText().toString())) {
                     setClearTextIcon();
@@ -279,71 +264,25 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
             }
     }
 
-    // Given provider is descendant of SearchRecentSuggestionsProvider (column scheme differs)
-    private void mapResultsFromRecentProviderToList () {
-        new AsyncTask<Void, Void, List>() {
-            @Override
-            protected void onPostExecute(List resultList) {
-                SearchAdapter adapter = new SearchAdapter(resultList);
-                searchResultList.setAdapter(adapter);
-            }
-
-            @Override
-            protected List doInBackground(Void[] params) {
-                Cursor results = queryRecentSuggestionsProvider();
-                List<ResultItem> resultList = new ArrayList<>();
-
-                Integer headerIdx = results.getColumnIndex("display1");
-                Integer subHeaderIdx = results.getColumnIndex("display2");
-                Integer leftIconIdx = results.getColumnIndex(SearchManager.SUGGEST_COLUMN_ICON_1);
-                Integer rightIconIdx = results.getColumnIndex(SearchManager.SUGGEST_COLUMN_ICON_2);
-
-                int i = 1;
-                while (results.moveToNext()) {
-                    String header = results.getString(headerIdx);
-                    String subHeader = (subHeaderIdx == -1) ? null : results.getString(subHeaderIdx);
-                    Integer leftIcon = (leftIconIdx == -1) ? 0 : results.getInt(leftIconIdx);
-                    Integer rightIcon = (rightIconIdx == -1) ? 0 : results.getInt(rightIconIdx);
-
-                    ResultItem aux = new ResultItem(Integer.toString(i),header, subHeader, leftIcon, rightIcon, query);
-                    resultList.add(aux);
-                    i++;
-                }
-
-                results.close();
-                return resultList;
-            }
-        }.execute();
-    }
-
-    private Cursor queryRecentSuggestionsProvider () {
-        Uri uri = Uri.parse("content://".concat(providerAuthority.concat("/suggestions")));
-
-        String[] selection = SearchRecentSuggestions.QUERIES_PROJECTION_1LINE;
-
-        String[] selectionArgs = new String[] {"%" + query + "%"};
-
-        return SearchActivity.this.getContentResolver().query(
-                uri,
-                selection,
-                "display1 LIKE ?",
-                selectionArgs,
-                "date DESC"
-        );
-    }
-
     // Given provider is custom and must follow the column contract
     private void mapResultsFromCustomProviderToList () {
         new AsyncTask<Void, Void, ArrayList>() {
             @Override
             protected void onPostExecute(ArrayList resultList) {
                 mResultList = resultList;
-                onAsyncTaskCompleted();
+                boolean errorFlag = resultList == null ? true : false;
+                onAsyncTaskCompleted(errorFlag);
             }
 
             @Override
             protected ArrayList doInBackground(Void[] params) {
-                Cursor results = results = queryCustomSuggestionProvider();
+                Cursor results = null;
+                try {
+                    results = queryCustomSuggestionProvider();
+                } catch(Exception ex) {
+                    Log.e(TAG, "Issues in getting data from provider");
+                    return null;
+                }
                 ArrayList<ResultItem> resultList = new ArrayList<>();
 
                 Integer idIdx = results.getColumnIndex(ArtistContentProvider.ID);
@@ -392,13 +331,6 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
         );
     }
 
-    // Sends an intent with the typed query to the searchable Activity
-    private void sendSearchIntent () {
-        SearchRecentSuggestions suggestions = new SearchRecentSuggestions(this, providerAuthority, SearchRecentSuggestionsProvider.DATABASE_MODE_QUERIES);
-        suggestions.saveRecentQuery(query, null);
-        finish();
-    }
-
     // Set X as the icon for the right icon in the app bar
     private void setClearTextIcon () {
         micIcon.setSelected(Boolean.TRUE);
@@ -414,7 +346,13 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
     }
 
     @Override
-    public void onAsyncTaskCompleted() {
-        this.createSearchAdapter();
+    public void onAsyncTaskCompleted(boolean pErrorFlag) {
+        if(pErrorFlag) {
+            Snackbar
+                    .make(rootView, R.string.no_interent_connection_text, Snackbar.LENGTH_LONG)
+                    .show();
+        } else {
+            this.createSearchAdapter();
+        }
     }
 }

@@ -1,9 +1,9 @@
 package com.lalapetstudios.udacityprojects.spotifystreamer;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -13,21 +13,24 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Toast;
 
-import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.TopTracksRecyclerAdapter;
-import com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.TopTracksByArtistContentProvider;
-import com.lalapetstudios.udacityprojects.spotifystreamer.models.TrackDetailsModel;
 import com.lalapetstudios.udacityprojects.spotifystreamer.util.GenerateSpotifyAccessToken;
+import com.lalapetstudios.udacityprojects.spotifystreamer.util.OnAsyncTaskCompletedInterface;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnAsyncTaskCompletedInterface {
 
     //private Toolbar toolbar;
+    private static final String TAG = MainActivity.class.getName();
+    View rootView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
 
         final ViewPager viewPager = (ViewPager) findViewById(R.id.tabanim_viewpager);
         setupViewPager(viewPager);
+
+        rootView = findViewById(R.id.mainview);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabanim_tabs);
         tabLayout.setupWithViewPager(viewPager);
@@ -63,12 +68,31 @@ public class MainActivity extends AppCompatActivity {
 
         new AsyncTask<Void, Void, String>() {
             @Override
+            protected void onPostExecute(String result) {
+                boolean errorFlag = result == null ? true : false;
+                onAsyncTaskCompleted(errorFlag);
+            }
+            @Override
             protected String doInBackground(Void[] params) {
                 // Just generate the token and keep it ready
-                return GenerateSpotifyAccessToken.generateAccessToken();
+                try {
+                    return GenerateSpotifyAccessToken.generateAccessToken();
+                }catch(Exception e) {
+                    Log.e(TAG, "Issues in getting data from provider");
+                    return null;
+                }
             }
         }.execute();
 
+    }
+
+    @Override
+    public void onAsyncTaskCompleted(boolean pErrorFlag) {
+        if(pErrorFlag) {
+            Snackbar
+                    .make(rootView, R.string.no_interent_connection_text, Snackbar.LENGTH_LONG)
+                    .show();
+        }
     }
 
     private void setupViewPager(ViewPager viewPager) {

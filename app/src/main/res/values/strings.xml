@@ -10,4 +10,5 @@
     <string name="search_hint">Search for an artist...</string>
     <string name="title_activity_artist_detail">ArtistDetailActivity</string>
     <string name="tracks">tracks</string>
+    <string name="no_interent_connection_text">Your internet connection is not there or might be poor</string>
 </resources>
