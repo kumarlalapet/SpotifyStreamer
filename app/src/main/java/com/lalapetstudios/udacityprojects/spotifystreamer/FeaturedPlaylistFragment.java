@@ -13,11 +13,13 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.FeaturedPlayListRecyclerAdapter;
+import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.NewReleasesRecyclerAdapter;
 import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.TopTracksRecyclerAdapter;
 import com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.FeaturedPlayListContentProvider;
 import com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.TopTracksByArtistContentProvider;
 import com.lalapetstudios.udacityprojects.spotifystreamer.models.FeaturedPlayListModel;
 import com.lalapetstudios.udacityprojects.spotifystreamer.models.TrackDetailsModel;
+import com.lalapetstudios.udacityprojects.spotifystreamer.util.OnAsyncTaskCompletedInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +27,13 @@ import java.util.List;
 /**
  * Created by g2ishan on 7/6/15.
  */
-public class FeaturedPlaylistFragment extends Fragment {
+public class FeaturedPlaylistFragment extends Fragment implements OnAsyncTaskCompletedInterface {
+
+    private static final String FEATURED_PLAYLIST_MODEL = "FEATURED_PLAYLIST_MODEL";
 
     RecyclerView recyclerView;
     FeaturedPlayListRecyclerAdapter fpRecyclerAdapter;
+    ArrayList<FeaturedPlayListModel> mResultList;
 
     public FeaturedPlaylistFragment() {
     }
@@ -42,26 +47,46 @@ public class FeaturedPlaylistFragment extends Fragment {
 
         recyclerView.setHasFixedSize(true);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(v.getContext(),2);
-        //LinearLayoutManager linearLayoutManager = new LinearLayoutManager(v.getContext());
         recyclerView.setLayoutManager(gridLayoutManager);
 
-        mapResultsFromFeaturedPlayListContentProviderToList();
+        if( savedInstanceState != null ){
+            this.mResultList = savedInstanceState.getParcelableArrayList(FEATURED_PLAYLIST_MODEL);
+            this.createFeaturedPlayListRecyclerAdapter();
+        } else {
+            mapResultsFromFeaturedPlayListContentProviderToList();
+        }
 
         return v;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(FEATURED_PLAYLIST_MODEL, mResultList);
+    }
+
+    @Override
+    public void onAsyncTaskCompleted() {
+        this.createFeaturedPlayListRecyclerAdapter();
+    }
+
+    private void createFeaturedPlayListRecyclerAdapter() {
+        fpRecyclerAdapter = new FeaturedPlayListRecyclerAdapter(mResultList);
+        recyclerView.setAdapter(fpRecyclerAdapter);
+    }
+
     private void mapResultsFromFeaturedPlayListContentProviderToList() {
-        new AsyncTask<Void, Void, List>() {
+        new AsyncTask<Void, Void, ArrayList>() {
             @Override
-            protected void onPostExecute(List resultList) {
-                fpRecyclerAdapter = new FeaturedPlayListRecyclerAdapter(resultList);
-                recyclerView.setAdapter(fpRecyclerAdapter);
+            protected void onPostExecute(ArrayList resultList) {
+                mResultList = resultList;
+                onAsyncTaskCompleted();
             }
 
             @Override
-            protected List doInBackground(Void[] params) {
+            protected ArrayList doInBackground(Void[] params) {
                 Cursor results = results = queryFeaturedPlayListProvider();
-                List<FeaturedPlayListModel> resultList = new ArrayList<>();
+                ArrayList<FeaturedPlayListModel> resultList = new ArrayList<>();
 
                 Integer idIdx = results.getColumnIndex(FeaturedPlayListContentProvider.ID);
                 Integer playListCoverIdx = results.getColumnIndex(FeaturedPlayListContentProvider.PLAY_LIST_COVER);

@@ -19,7 +19,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -34,6 +33,7 @@ import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.SearchAdapter
 import com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.ArtistContentProvider;
 import com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.RecentSuggestionsProvider;
 import com.lalapetstudios.udacityprojects.spotifystreamer.models.ResultItem;
+import com.lalapetstudios.udacityprojects.spotifystreamer.util.OnAsyncTaskCompletedInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,9 +46,12 @@ import java.util.List;
  * be called through an intent and it's responses are also sent as intents
  */
 
-public class SearchActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity implements OnAsyncTaskCompletedInterface {
     // CONSTANTS
     private static final String TAG = "SearchActivity";
+    private static final String RESULT_ITEM_MODEL = "RESULT_ITEM_MODEL";
+    private static final String RESULT_ITEM_MODEL_QUERY = "RESULT_ITEM_MODEL_QUERY";
+
     public static final int VOICE_RECOGNITION_CODE = 1;
     public static final String CLICKED_RESULT_ITEM = "clicked_result_item";
 
@@ -67,12 +70,15 @@ public class SearchActivity extends AppCompatActivity {
     private int currentapiVersion = 0;
     private RippleView dismissRippleView;
     private RippleView micRippleView;
+    ArrayList<ResultItem> mResultList;
+    Bundle mSavedInstaneState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         this.setContentView(R.layout.custom_searchable);
+        this.mSavedInstaneState = savedInstanceState;
 
         this.query = "";
         this.searchResultList = (RecyclerView) this.findViewById(R.id.cs_result_list);
@@ -136,6 +142,13 @@ public class SearchActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(RESULT_ITEM_MODEL, mResultList);
+        outState.putString(RESULT_ITEM_MODEL_QUERY, query);
+    }
+
     private void implementSearchTextListener() {
         // Gets the event of pressing search button on soft keyboard
         TextView.OnEditorActionListener searchListener = new TextView.OnEditorActionListener() {
@@ -166,7 +179,23 @@ public class SearchActivity extends AppCompatActivity {
                     mapResultsFromRecentProviderToList();
                 } else {
                     // Provider is custom and shall follow the contract
-                    mapResultsFromCustomProviderToList();
+                    boolean usedFromBundle = false;
+                    if (mSavedInstaneState != null) {
+                        String previousQuery = mSavedInstaneState.getString(RESULT_ITEM_MODEL_QUERY);
+                        if (previousQuery != null && previousQuery.trim().length() > 0) {
+                            if (query != null && query.trim().length() > 0) {
+                                if (previousQuery.trim().equals(query.trim())) {
+                                    mResultList = mSavedInstaneState.getParcelableArrayList(RESULT_ITEM_MODEL);
+                                    createSearchAdapter();
+                                    usedFromBundle = true;
+                                }
+                            }
+                        }
+
+                    }
+                    if (!usedFromBundle) {
+                        mapResultsFromCustomProviderToList();
+                    }
                 }
 
                 if (!"".equals(searchInput.getText().toString())) {
@@ -189,6 +218,11 @@ public class SearchActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    private void createSearchAdapter() {
+        SearchAdapter adapter = new SearchAdapter(mResultList);
+        searchResultList.setAdapter(adapter);
     }
 
     // Finishes this activity and goes back to the caller
@@ -271,7 +305,7 @@ public class SearchActivity extends AppCompatActivity {
                     Integer leftIcon = (leftIconIdx == -1) ? 0 : results.getInt(leftIconIdx);
                     Integer rightIcon = (rightIconIdx == -1) ? 0 : results.getInt(rightIconIdx);
 
-                    ResultItem aux = new ResultItem(Integer.toString(i),header, subHeader, leftIcon, rightIcon);
+                    ResultItem aux = new ResultItem(Integer.toString(i),header, subHeader, leftIcon, rightIcon, query);
                     resultList.add(aux);
                     i++;
                 }
@@ -300,17 +334,17 @@ public class SearchActivity extends AppCompatActivity {
 
     // Given provider is custom and must follow the column contract
     private void mapResultsFromCustomProviderToList () {
-        new AsyncTask<Void, Void, List>() {
+        new AsyncTask<Void, Void, ArrayList>() {
             @Override
-            protected void onPostExecute(List resultList) {
-                SearchAdapter adapter = new SearchAdapter(resultList);
-                searchResultList.setAdapter(adapter);
+            protected void onPostExecute(ArrayList resultList) {
+                mResultList = resultList;
+                onAsyncTaskCompleted();
             }
 
             @Override
-            protected List doInBackground(Void[] params) {
+            protected ArrayList doInBackground(Void[] params) {
                 Cursor results = results = queryCustomSuggestionProvider();
-                List<ResultItem> resultList = new ArrayList<>();
+                ArrayList<ResultItem> resultList = new ArrayList<>();
 
                 Integer idIdx = results.getColumnIndex(ArtistContentProvider.ID);
                 Integer headerIdx = results.getColumnIndex(SearchManager.SUGGEST_COLUMN_TEXT_1);
@@ -332,7 +366,7 @@ public class SearchActivity extends AppCompatActivity {
 
                     Integer rightIcon = (rightIconIdx == -1) ? 0 : results.getInt(rightIconIdx);
 
-                    ResultItem aux = new ResultItem(id,header, subHeader, leftIcon, rightIcon);
+                    ResultItem aux = new ResultItem(id,header, subHeader, leftIcon, rightIcon, query);
                     resultList.add(aux);
                 }
 
@@ -379,4 +413,8 @@ public class SearchActivity extends AppCompatActivity {
         micIcon.invalidate();
     }
 
+    @Override
+    public void onAsyncTaskCompleted() {
+        this.createSearchAdapter();
+    }
 }

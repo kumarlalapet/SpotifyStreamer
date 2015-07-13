@@ -17,6 +17,7 @@ import com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.Featu
 import com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.NewReleasesContentProvider;
 import com.lalapetstudios.udacityprojects.spotifystreamer.models.FeaturedPlayListModel;
 import com.lalapetstudios.udacityprojects.spotifystreamer.models.NewReleasesModel;
+import com.lalapetstudios.udacityprojects.spotifystreamer.util.OnAsyncTaskCompletedInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +25,13 @@ import java.util.List;
 /**
  * Created by g2ishan on 7/6/15.
  */
-public class NewReleasesFragment extends Fragment {
+public class NewReleasesFragment extends Fragment implements OnAsyncTaskCompletedInterface {
+
+    private static final String NEW_RELEASES_MODEL = "NEW_RELEASES_MODEL";
 
     RecyclerView recyclerView;
     NewReleasesRecyclerAdapter nrRecyclerAdapter;
+    ArrayList<NewReleasesModel> mResultList;
 
     public NewReleasesFragment() {
     }
@@ -43,23 +47,44 @@ public class NewReleasesFragment extends Fragment {
         GridLayoutManager gridLayoutManager = new GridLayoutManager(v.getContext(),2);
         recyclerView.setLayoutManager(gridLayoutManager);
 
-        mapResultsFromNewReleasesContentProviderToList();
+        if( savedInstanceState != null ){
+            this.mResultList = savedInstanceState.getParcelableArrayList(NEW_RELEASES_MODEL);
+            this.createNewReleasesRecyclerAdapter();
+        } else {
+            mapResultsFromNewReleasesContentProviderToList();
+        }
 
         return v;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(NEW_RELEASES_MODEL,mResultList);
+    }
+
+    @Override
+    public void onAsyncTaskCompleted() {
+        this.createNewReleasesRecyclerAdapter();
+    }
+
+    private void createNewReleasesRecyclerAdapter() {
+        nrRecyclerAdapter = new NewReleasesRecyclerAdapter(mResultList);
+        recyclerView.setAdapter(nrRecyclerAdapter);
+    }
+
     private void mapResultsFromNewReleasesContentProviderToList() {
-        new AsyncTask<Void, Void, List>() {
+        new AsyncTask<Void, Void, ArrayList>() {
             @Override
-            protected void onPostExecute(List resultList) {
-                nrRecyclerAdapter = new NewReleasesRecyclerAdapter(resultList);
-                recyclerView.setAdapter(nrRecyclerAdapter);
+            protected void onPostExecute(ArrayList resultList) {
+                mResultList = resultList;
+                onAsyncTaskCompleted();
             }
 
             @Override
-            protected List doInBackground(Void[] params) {
+            protected ArrayList doInBackground(Void[] params) {
                 Cursor results = results = queryNewReleasesProvider();
-                List<NewReleasesModel> resultList = new ArrayList<>();
+                ArrayList<NewReleasesModel> resultList = new ArrayList<>();
 
                 Integer idIdx = results.getColumnIndex(NewReleasesContentProvider.ID);
                 Integer nrCoverIdx = results.getColumnIndex(NewReleasesContentProvider.NR_COVER);

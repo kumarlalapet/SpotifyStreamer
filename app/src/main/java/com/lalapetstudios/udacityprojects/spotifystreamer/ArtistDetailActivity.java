@@ -1,18 +1,15 @@
 package com.lalapetstudios.udacityprojects.spotifystreamer;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -30,20 +27,19 @@ import android.widget.ImageView;
 import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.ArtistDetailRecyclerAdapter;
 import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.TopTracksRecyclerAdapter;
 import com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.TopTracksByArtistContentProvider;
-import com.lalapetstudios.udacityprojects.spotifystreamer.models.ArtistDetailModel;
 import com.lalapetstudios.udacityprojects.spotifystreamer.models.ResultItem;
 import com.lalapetstudios.udacityprojects.spotifystreamer.models.TrackDetailsModel;
-import com.lalapetstudios.udacityprojects.spotifystreamer.util.GenerateSpotifyAccessToken;
+import com.lalapetstudios.udacityprojects.spotifystreamer.util.OnAsyncTaskCompletedInterface;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.List;
 
 
-public class ArtistDetailActivity extends AppCompatActivity {
+public class ArtistDetailActivity extends AppCompatActivity implements OnAsyncTaskCompletedInterface {
 
     private static final String TAG = ArtistDetailActivity.class.getName();
+    private static final String TRACK_DETAILS_MODEL = "TRACK_DETAILS_MODEL";
 
     CollapsingToolbarLayout collapsingToolbar;
     RecyclerView recyclerView;
@@ -51,6 +47,7 @@ public class ArtistDetailActivity extends AppCompatActivity {
     ArtistDetailRecyclerAdapter simpleRecyclerAdapter;
     TopTracksRecyclerAdapter topTracksRecyclerAdapter;
     ResultItem item;
+    ArrayList<TrackDetailsModel> mResultList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,7 +117,18 @@ public class ArtistDetailActivity extends AppCompatActivity {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
 
-        mapResultsFromTopTracksContentProviderToList();
+        if( savedInstanceState != null ){
+            this.mResultList = savedInstanceState.getParcelableArrayList(TRACK_DETAILS_MODEL);
+            this.createTopTracksRecyclerAdapter();
+        } else {
+            mapResultsFromTopTracksContentProviderToList();
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(TRACK_DETAILS_MODEL, mResultList);
     }
 
     @Override
@@ -149,19 +157,29 @@ public class ArtistDetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onAsyncTaskCompleted() {
+        this.createTopTracksRecyclerAdapter();
+    }
+
+    private void createTopTracksRecyclerAdapter() {
+        topTracksRecyclerAdapter = new TopTracksRecyclerAdapter(mResultList);
+        recyclerView.setAdapter(topTracksRecyclerAdapter);
+    }
+
     // Map the results into tracks models from the provider
     private void mapResultsFromTopTracksContentProviderToList () {
-        new AsyncTask<Void, Void, List>() {
+        new AsyncTask<Void, Void, ArrayList>() {
             @Override
-            protected void onPostExecute(List resultList) {
-                topTracksRecyclerAdapter = new TopTracksRecyclerAdapter(resultList);
-                recyclerView.setAdapter(topTracksRecyclerAdapter);
+            protected void onPostExecute(ArrayList resultList) {
+                mResultList = resultList;
+                onAsyncTaskCompleted();
             }
 
             @Override
-            protected List doInBackground(Void[] params) {
+            protected ArrayList doInBackground(Void[] params) {
                 Cursor results = results = queryTopTracksProvider();
-                List<TrackDetailsModel> resultList = new ArrayList<>();
+                ArrayList<TrackDetailsModel> resultList = new ArrayList<>();
 
                 Integer idIdx = results.getColumnIndex(TopTracksByArtistContentProvider.ID);
                 Integer albumCoverIdx = results.getColumnIndex(TopTracksByArtistContentProvider.ALBUM_COVER);

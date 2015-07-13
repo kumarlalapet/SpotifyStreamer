@@ -15,6 +15,7 @@ public class ResultItem implements Parcelable {
     private Object leftIcon;
     private Integer rightIcon;
     private String id;
+    private String query;
 
     // Constructors
     public ResultItem () {
@@ -22,14 +23,16 @@ public class ResultItem implements Parcelable {
         this.subHeader = "Error";
         this.leftIcon = R.drawable.no_artist_image;
         this.rightIcon = R.drawable.ic_action_arrow_left_top;
+        this.query = "";
     }
 
-    public ResultItem (String id, String header, String subHeader, Object leftIcon, Integer rightIcon) {
+    public ResultItem (String id, String header, String subHeader, Object leftIcon, Integer rightIcon, String pQuery) {
         this.setId(id);
         this.setHeader(header);
         this.setSubHeader(subHeader);
         this.setLeftIcon(leftIcon);
         this.setRightIcon(rightIcon);
+        this.query = pQuery;
     }
 
     // Getters and Setters
@@ -77,6 +80,14 @@ public class ResultItem implements Parcelable {
         }
     }
 
+    public String getQuery() {
+        return query;
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
+    }
+
     // Parcelable contract implementation
     @Override
     public int describeContents() {
@@ -96,6 +107,7 @@ public class ResultItem implements Parcelable {
             dest.writeInt((Integer)leftIcon);
         }
         dest.writeInt(rightIcon);
+        dest.writeString(query);
     }
 
     // Parcelable Creator Implementation
@@ -113,6 +125,7 @@ public class ResultItem implements Parcelable {
                 resultItem.setLeftIcon(in.readInt());
             }
             resultItem.setRightIcon(in.readInt());
+            resultItem.setQuery(in.readString());
 
             return resultItem;
         }
