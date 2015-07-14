@@ -100,7 +100,7 @@ public class ArtistContentProvider extends ContentProvider {
         SpotifyApi api = new SpotifyApi();
         SpotifyService spotify = api.getService();
 
-        ArtistsPager artistsPager = spotify.searchArtists(query);
+        ArtistsPager artistsPager = spotify.searchArtists(query+"*");
         Pager<Artist> artists = artistsPager.artists;
         List<Artist> artistsList = artists.items;
 

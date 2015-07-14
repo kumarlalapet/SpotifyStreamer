@@ -3,7 +3,6 @@ package com.lalapetstudios.udacityprojects.spotifystreamer;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SearchRecentSuggestionsProvider;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
@@ -72,7 +71,8 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
     private int currentapiVersion = 0;
     private RippleView dismissRippleView;
     private RippleView micRippleView;
-    ArrayList<ResultItem> mResultList;
+    private Snackbar mSnackbar;
+    ArrayList<ResultItem> mResultList = new ArrayList<>();
     Bundle mSavedInstaneState;
     View rootView;
 
@@ -152,6 +152,11 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
                         InputMethodManager imm = (InputMethodManager)getSystemService(
                                 Context.INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(exampleView.getWindowToken(), 0);
+                    if(mResultList.size() == 0) {
+                        mSnackbar = Snackbar
+                                .make(rootView, R.string.no_resultfound_text, Snackbar.LENGTH_LONG);
+                        mSnackbar.show();
+                    }
                 }
                 return true;
             }
@@ -320,7 +325,7 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
         Uri uri = Uri.parse("content://".concat(ArtistContentProvider.PROVIDER_AUTHORITY).concat("/suggestions/").concat(query));
 
         String[] selection = {"display1"};
-        String[] selectionArgs = new String[] {"%" + query + "%"};
+        String[] selectionArgs = new String[] {query};
 
         return SearchActivity.this.getContentResolver().query(
                 uri,
@@ -352,6 +357,13 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
                     .make(rootView, R.string.no_interent_connection_text, Snackbar.LENGTH_LONG)
                     .show();
         } else {
+            if(mSnackbar != null)
+                mSnackbar.dismiss();
+            if(mResultList.size() == 0 && query != null && query.length()>0) {
+                mSnackbar = Snackbar
+                        .make(rootView, R.string.no_resultfound_text, Snackbar.LENGTH_SHORT);
+                mSnackbar.show();
+            }
             this.createSearchAdapter();
         }
     }

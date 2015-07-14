@@ -11,4 +11,5 @@
     <string name="title_activity_artist_detail">ArtistDetailActivity</string>
     <string name="tracks">tracks</string>
     <string name="no_interent_connection_text">Your internet connection is not there or might be poor</string>
+    <string name="no_resultfound_text">No results found. Please refine your search.</string>
 </resources>
