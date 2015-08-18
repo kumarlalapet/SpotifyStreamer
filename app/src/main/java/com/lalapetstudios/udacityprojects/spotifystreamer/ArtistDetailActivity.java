@@ -3,56 +3,48 @@ package com.lalapetstudios.udacityprojects.spotifystreamer;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
 
-import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.ArtistDetailRecyclerAdapter;
-import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.TopTracksRecyclerAdapter;
-import com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.TopTracksByArtistContentProvider;
 import com.lalapetstudios.udacityprojects.spotifystreamer.models.ResultItem;
-import com.lalapetstudios.udacityprojects.spotifystreamer.models.TrackDetailsModel;
-import com.lalapetstudios.udacityprojects.spotifystreamer.util.OnAsyncTaskCompletedInterface;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
-public class ArtistDetailActivity extends AppCompatActivity implements OnAsyncTaskCompletedInterface {
+public class ArtistDetailActivity extends AppCompatActivity {
 
     private static final String TAG = ArtistDetailActivity.class.getName();
-    private static final String TRACK_DETAILS_MODEL = "TRACK_DETAILS_MODEL";
 
     CollapsingToolbarLayout collapsingToolbar;
-    RecyclerView recyclerView;
     int mutedColor = R.attr.colorPrimary;
-    ArtistDetailRecyclerAdapter simpleRecyclerAdapter;
-    TopTracksRecyclerAdapter topTracksRecyclerAdapter;
     ResultItem item;
-    ArrayList<TrackDetailsModel> mResultList;
     View rootView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
+
         super.onCreate(savedInstanceState);
 
         item = getIntent().getExtras().getParcelable(SearchActivity.CLICKED_RESULT_ITEM);
@@ -61,9 +53,11 @@ public class ArtistDetailActivity extends AppCompatActivity implements OnAsyncTa
 
         //TODO include the fragment in this activity
 
+        //android:fitsSystemWindows="true"
         getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+               View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.anim_toolbar);
         setSupportActionBar(toolbar);
@@ -114,25 +108,11 @@ public class ArtistDetailActivity extends AppCompatActivity implements OnAsyncTa
 
         rootView = findViewById(R.id.artisti_detail_rootview);
 
-        recyclerView = (RecyclerView) findViewById(R.id.scrollableview);
-
-        recyclerView.setHasFixedSize(true);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(linearLayoutManager);
-
-        if( savedInstanceState != null ){
-            this.mResultList = savedInstanceState.getParcelableArrayList(TRACK_DETAILS_MODEL);
-            this.createTopTracksRecyclerAdapter();
-        } else {
-            mapResultsFromTopTracksContentProviderToList();
-        }
-
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(TRACK_DETAILS_MODEL, mResultList);
+        final ViewPager viewPager = (ViewPager) findViewById(R.id.artistDetailViewpager);
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        adapter.addFragmet(new ArtistDetailActivityFragment());
+        viewPager.setAdapter(adapter);
+        viewPager.setCurrentItem(0);
     }
 
     @Override
@@ -161,79 +141,6 @@ public class ArtistDetailActivity extends AppCompatActivity implements OnAsyncTa
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onAsyncTaskCompleted(boolean pErrorFlag) {
-        if(pErrorFlag) {
-            Snackbar
-                    .make(rootView, R.string.no_interent_connection_text, Snackbar.LENGTH_LONG)
-                    .show();
-        } else {
-            this.createTopTracksRecyclerAdapter();
-        }
-    }
-
-    private void createTopTracksRecyclerAdapter() {
-        topTracksRecyclerAdapter = new TopTracksRecyclerAdapter(mResultList);
-        recyclerView.setAdapter(topTracksRecyclerAdapter);
-    }
-
-    // Map the results into tracks models from the provider
-    private void mapResultsFromTopTracksContentProviderToList () {
-        new AsyncTask<Void, Void, ArrayList>() {
-            @Override
-            protected void onPostExecute(ArrayList resultList) {
-                mResultList = resultList;
-                boolean errorFlag = resultList == null ? true : false;
-                onAsyncTaskCompleted(errorFlag);
-            }
-
-            @Override
-            protected ArrayList doInBackground(Void[] params) {
-                Cursor results = null;
-                try {
-                    results = queryTopTracksProvider();
-                } catch(Exception ex) {
-                    Log.e(TAG, "Issues in getting data from provider");
-                    return null;
-                }
-                ArrayList<TrackDetailsModel> resultList = new ArrayList<>();
-
-                Integer idIdx = results.getColumnIndex(TopTracksByArtistContentProvider.ID);
-                Integer albumCoverIdx = results.getColumnIndex(TopTracksByArtistContentProvider.ALBUM_COVER);
-                Integer trackNameIdx = results.getColumnIndex(TopTracksByArtistContentProvider.TRACK_NAME);
-                Integer albumNameIdx = results.getColumnIndex(TopTracksByArtistContentProvider.ALBUM_NAME);
-                Integer durationIdx = results.getColumnIndex(TopTracksByArtistContentProvider.DURATION_IN_MS);
-
-                while (results.moveToNext()) {
-                    String id = results.getString(idIdx);
-                    String albumCover = results.getString(albumCoverIdx);
-                    String trackName = results.getString(trackNameIdx);
-                    String albumName = results.getString(albumNameIdx);
-                    String duration = results.getString(durationIdx);
-
-                    TrackDetailsModel trackDtls = new TrackDetailsModel(id,albumCover,trackName,albumName,duration);
-                    resultList.add(trackDtls);
-                }
-
-                results.close();
-                return resultList;
-            }
-        }.execute();
-    }
-
-    private Cursor queryTopTracksProvider() {
-        Uri uri = Uri.parse("content://".concat(TopTracksByArtistContentProvider.PROVIDER_AUTHORITY)
-                .concat("/top-tracks/").concat(item.getId()));
-
-        return ArtistDetailActivity.this.getContentResolver().query(
-                uri,
-                null,
-                item.getId(),
-                null,
-                null
-        );
-    }
-
     private Bitmap drawableToBitmap (Drawable drawable) {
         Bitmap bitmap = null;
 
@@ -254,6 +161,29 @@ public class ArtistDetailActivity extends AppCompatActivity implements OnAsyncTa
         drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
         drawable.draw(canvas);
         return bitmap;
+    }
+
+    static class ViewPagerAdapter extends FragmentPagerAdapter {
+        private final List<Fragment> mFragmentList = new ArrayList<>();
+
+        public ViewPagerAdapter(FragmentManager manager) {
+            super(manager);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return mFragmentList.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return mFragmentList.size();
+        }
+
+        public void addFragmet(Fragment fragment) {
+            mFragmentList.add(fragment);
+        }
+
     }
 
 }

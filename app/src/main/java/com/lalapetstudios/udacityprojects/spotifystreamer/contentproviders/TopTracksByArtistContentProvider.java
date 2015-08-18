@@ -7,7 +7,6 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
-import android.nfc.Tag;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -35,6 +34,7 @@ public class TopTracksByArtistContentProvider extends ContentProvider {
 
     public static final String PROVIDER_AUTHORITY = "com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.TopTracksByArtistContentProvider";
     private static final UriMatcher uriMatcher;
+    public static final String PREVIEW_URL = "PREVIEW_URL";
 
     static {
         uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -85,7 +85,8 @@ public class TopTracksByArtistContentProvider extends ContentProvider {
                 ALBUM_COVER,
                 TRACK_NAME,
                 ALBUM_NAME,
-                DURATION_IN_MS
+                DURATION_IN_MS,
+                PREVIEW_URL
         });
 
         Log.i(TAG,"URI - "+selectionArg);
@@ -100,9 +101,9 @@ public class TopTracksByArtistContentProvider extends ContentProvider {
         for(Track track : trackList) {
             Object data[] = null;
             if(track.album.images.size() > 0)
-                data = new Object[]{track.id,track.album.images.get(0).url,track.name,track.album.name,Long.toString(track.duration_ms)};
+                data = new Object[]{track.id,track.album.images.get(0).url,track.name,track.album.name,Long.toString(track.duration_ms),track.preview_url};
             else
-                data = new Object[]{track.id,null,track.name,track.album.name,Long.toString(track.duration_ms)};
+                data = new Object[]{track.id,null,track.name,track.album.name,Long.toString(track.duration_ms),track.preview_url};
             mc.addRow(data);
         }
 

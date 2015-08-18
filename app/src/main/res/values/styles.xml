@@ -8,6 +8,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowActionBarOverlay">true</item>
     </style>
 
     <!-- Base application theme. -->
@@ -29,6 +30,10 @@
     </style>
 
     <style name="ArtistsTopTracksTheme" parent="MyMaterialTheme">
+    </style>
+
+    <style name="ActionBar" parent="ThemeOverlay.AppCompat.ActionBar">
+        <item name="android:displayOptions">homeAsUp</item>
     </style>
 
     <!-- END theme for custom search bar component -->
