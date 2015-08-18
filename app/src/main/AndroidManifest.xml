@@ -47,6 +47,10 @@
             android:label="@string/title_activity_artist_detail"
             android:theme="@style/ArtistsTopTracksTheme" >
         </activity>
+        <activity
+            android:name=".PlayerActivity"
+            android:label="@string/title_activity_player" >
+        </activity>
     </application>
 
 </manifest>

@@ -17,5 +17,6 @@
 
     <color name="rippleEffectMaskColor">#FAFAFA</color>
     <color name="rippleEffectWaveColor">#bbbbbb</color>
+    <color name="whiteTransparentColor">#F0FFFFFF</color>
     <!-- END Added for the custom search bar -->
 </resources>

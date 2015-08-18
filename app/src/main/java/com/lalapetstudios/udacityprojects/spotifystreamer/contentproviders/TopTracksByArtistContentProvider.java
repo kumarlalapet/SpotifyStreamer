@@ -15,6 +15,7 @@ import java.util.Map;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
+import kaaes.spotify.webapi.android.models.ArtistSimple;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
 
@@ -35,6 +36,7 @@ public class TopTracksByArtistContentProvider extends ContentProvider {
     public static final String PROVIDER_AUTHORITY = "com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.TopTracksByArtistContentProvider";
     private static final UriMatcher uriMatcher;
     public static final String PREVIEW_URL = "PREVIEW_URL";
+    public static final String ARTIST_NAME = "ARTIST_NAME";
 
     static {
         uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -86,7 +88,8 @@ public class TopTracksByArtistContentProvider extends ContentProvider {
                 TRACK_NAME,
                 ALBUM_NAME,
                 DURATION_IN_MS,
-                PREVIEW_URL
+                PREVIEW_URL,
+                ARTIST_NAME
         });
 
         Log.i(TAG,"URI - "+selectionArg);
@@ -100,10 +103,17 @@ public class TopTracksByArtistContentProvider extends ContentProvider {
         List<Track> trackList = tracks.tracks;
         for(Track track : trackList) {
             Object data[] = null;
+            String artists = "";
+            for(ArtistSimple artist : track.artists) {
+                if(artists.length() == 0)
+                    artists = artist.name;
+                else
+                    artists = artists+", "+artist.name;
+            }
             if(track.album.images.size() > 0)
-                data = new Object[]{track.id,track.album.images.get(0).url,track.name,track.album.name,Long.toString(track.duration_ms),track.preview_url};
+                data = new Object[]{track.id,track.album.images.get(0).url,track.name,track.album.name,Long.toString(track.duration_ms),track.preview_url,artists};
             else
-                data = new Object[]{track.id,null,track.name,track.album.name,Long.toString(track.duration_ms),track.preview_url};
+                data = new Object[]{track.id,null,track.name,track.album.name,Long.toString(track.duration_ms),track.preview_url,artists};
             mc.addRow(data);
         }
 

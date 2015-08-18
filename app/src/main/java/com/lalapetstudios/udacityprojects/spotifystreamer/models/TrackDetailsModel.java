@@ -14,16 +14,26 @@ public class TrackDetailsModel implements Parcelable {
     private String albumName;
     private String durationInMs;
     private String previewUrl;
+    private String artists;
 
     TrackDetailsModel(){
     }
-    public TrackDetailsModel(String pId, String pAlbumCover, String pTrackName, String pAlbumName, String pDurationInMs, String pPreviewUrl) {
+    public TrackDetailsModel(String pId, String pAlbumCover, String pTrackName, String pAlbumName, String pDurationInMs, String pPreviewUrl, String pArtists) {
         this.id = pId;
         this.albumCover = pAlbumCover;
         this.trackName = pTrackName;
         this.albumName = pAlbumName;
         this.durationInMs = pDurationInMs;
         this.previewUrl = pPreviewUrl;
+        this.artists = pArtists;
+    }
+
+    public String getArtists() {
+        return artists;
+    }
+
+    public void setArtists(String artists) {
+        this.artists = artists;
     }
 
     public String getId() {
@@ -87,6 +97,7 @@ public class TrackDetailsModel implements Parcelable {
         dest.writeString(getAlbumName());
         dest.writeString(getDurationInMs());
         dest.writeString(getPreviewUrl());
+        dest.writeString(getArtists());
     }
 
     // Parcelable Creator Implementation
@@ -101,6 +112,7 @@ public class TrackDetailsModel implements Parcelable {
             trackDetails.setAlbumName(in.readString());
             trackDetails.setDurationInMs(in.readString());
             trackDetails.setPreviewUrl(in.readString());
+            trackDetails.setArtists(in.readString());
 
             return trackDetails;
         }

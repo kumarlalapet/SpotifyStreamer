@@ -1,0 +1,166 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.lalapetstudios.udacityprojects.spotifystreamer.PlayerFragment">
+
+    <ImageView
+        android:id="@+id/trackCoverImage"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:scaleType="fitCenter" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/playerBarHeight"
+            android:layout_alignParentTop="true"
+            android:background="@color/whiteTransparentColor"
+            android:elevation="2dp">
+
+            <ImageView
+                android:id="@+id/thumbNailImageView"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                android:layout_alignParentLeft="true"
+                android:layout_gravity="center"
+                android:layout_marginBottom="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:gravity="center" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginBottom="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_toRightOf="@id/thumbNailImageView"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/trackName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Track Name"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/albumName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/trackName"
+                    android:text="Album Name"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/artistName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/albumName"
+                    android:text="Artist Name"
+                    android:textSize="12sp" />
+
+            </RelativeLayout>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/playerControlsBar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/playerBarHeight"
+            android:layout_alignParentBottom="true"
+            android:background="@color/whiteTransparentColor"
+            android:elevation="2dp">
+
+            <com.andexert.library.RippleView
+                android:id="@+id/playpauseButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:layout_marginLeft="40dp"
+                android:layout_marginRight="40dp"
+                app:rv_centered="true"
+                app:rv_color="@color/rippleEffectWaveColor"
+                app:rv_rippleDuration="150">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_av_play_circle_fill" />
+
+            </com.andexert.library.RippleView>
+
+            <com.andexert.library.RippleView
+                android:id="@+id/nextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_toRightOf="@id/playpauseButton"
+                app:rv_centered="true"
+                app:rv_rippleDuration="150">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_av_skip_next" />
+
+            </com.andexert.library.RippleView>
+
+            <com.andexert.library.RippleView
+                android:id="@+id/previousButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_toLeftOf="@id/playpauseButton"
+                app:rv_centered="true"
+                app:rv_rippleDuration="150">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_av_skip_previous" />
+
+            </com.andexert.library.RippleView>
+
+            <TextView
+                android:id="@+id/rightTimeTrackerText"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="10dp"
+                android:text="0:00"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/leftTimeTrackerText"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:textColor="@color/colorAccent"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="0:00"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </RelativeLayout>
+
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:padding="0dp"
+            android:elevation="3dp"
+            android:layout_above="@id/playerControlsBar" />
+
+    </RelativeLayout>
+
+</FrameLayout>
