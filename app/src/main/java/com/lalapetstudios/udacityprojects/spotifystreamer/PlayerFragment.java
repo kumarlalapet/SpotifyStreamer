@@ -16,14 +16,17 @@ import com.andexert.library.RippleView;
 import com.lalapetstudios.udacityprojects.spotifystreamer.models.TrackDetailsModel;
 import com.squareup.picasso.Picasso;
 
+import java.lang.reflect.Field;
+
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class PlayerFragment extends Fragment {
 
-    View rootView;
     TrackDetailsModel currentTrack;
+
+    View rootView;
     ImageView trackCoverImage;
     TextView trackNameTextView;
     TextView artistNameTextView;
@@ -31,6 +34,8 @@ public class PlayerFragment extends Fragment {
     ImageView thumbNailImageView;
     RippleView playpauseButton;
     SeekBar seekbar;
+    RippleView nextButton;
+    RippleView previousButton;
 
     public PlayerFragment() {
         // Required empty public constructor
@@ -41,22 +46,12 @@ public class PlayerFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_player, container, false);
-        currentTrack = (TrackDetailsModel) getActivity().getIntent().getExtras().getParcelable(ArtistDetailActivityFragment.TRACK_DETAILS_MODEL);
 
-        setupView();
-        return rootView;
-    }
+        currentTrack = (TrackDetailsModel) getArguments().getParcelable(ArtistDetailActivityFragment.TRACK_DETAILS_MODEL);
 
-    private void setupView() {
         trackNameTextView = (TextView) rootView.findViewById(R.id.trackName);
-        trackNameTextView.setText(currentTrack.getTrackName());
-
         albumNameTextView = (TextView) rootView.findViewById(R.id.albumName);
-        albumNameTextView.setText(currentTrack.getAlbumName());
-
         artistNameTextView = (TextView) rootView.findViewById(R.id.artistName);
-        artistNameTextView.setText(currentTrack.getArtists());
-
         playpauseButton = (RippleView) rootView.findViewById(R.id.playpauseButton);
         playpauseButton.setOnRippleCompleteListener(new RippleView.OnRippleCompleteListener() {
             @Override
@@ -64,7 +59,6 @@ public class PlayerFragment extends Fragment {
                 ((ImageView) rippleView.getChildAt(0)).setImageDrawable(getResources().getDrawable(R.drawable.ic_av_pause_circle_fill));
             }
         });
-
         seekbar = (SeekBar) rootView.findViewById(R.id.seekBar);
         seekbar.getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -74,7 +68,6 @@ public class PlayerFragment extends Fragment {
                         RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) seekbar.getLayoutParams();
                         params.setMargins(0, -seekbar.getHeight() / 2, 0, -seekbar.getHeight() / 2);
                         seekbar.setLayoutParams(params);
-                        //seekbar.setVisibility(View.VISIBLE);
                     }
 
                 });
@@ -82,22 +75,48 @@ public class PlayerFragment extends Fragment {
         thumbNailImageView = (ImageView) rootView.findViewById(R.id.thumbNailImageView);
         trackCoverImage = (ImageView) rootView.findViewById(R.id.trackCoverImage);
 
+        nextButton = (RippleView) rootView.findViewById(R.id.nextButton);
+        nextButton.setOnRippleCompleteListener(new RippleView.OnRippleCompleteListener() {
+            @Override
+            public void onComplete(RippleView rippleView) {
+                ((PlayerActivity)getActivity()).goToNextPage();
+            }
+        });
+
+        previousButton = (RippleView) rootView.findViewById(R.id.previousButton);
+        previousButton.setOnRippleCompleteListener(new RippleView.OnRippleCompleteListener() {
+            @Override
+            public void onComplete(RippleView rippleView) {
+                ((PlayerActivity)getActivity()).goToPreviousPage();
+            }
+        });
+
+        setupView();
+        return rootView;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        try {
+            Field childFragmentManager = Fragment.class.getDeclaredField("mChildFragmentManager");
+            childFragmentManager.setAccessible(true);
+            childFragmentManager.set(this, null);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void setupView() {
+        trackNameTextView.setText(currentTrack.getTrackName());
+        albumNameTextView.setText(currentTrack.getAlbumName());
+        artistNameTextView.setText(currentTrack.getArtists());
         if (currentTrack.getAlbumCover() != null &&
                 currentTrack.getAlbumCover().getClass().equals(String.class)) {
             Picasso.with(getActivity()).load(currentTrack.getAlbumCover()).fit().into(thumbNailImageView);
             Picasso.with(getActivity()).load(currentTrack.getAlbumCover()).fit().into(trackCoverImage);
-
-            /**new Target() {
-            @Override public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-            rootView.setBackground(new BitmapDrawable(getActivity().getResources(), bitmap));
-            }
-
-            @Override public void onBitmapFailed(Drawable errorDrawable) {
-            }
-
-            @Override public void onPrepareLoad(Drawable placeHolderDrawable) {
-            }
-            });**/
         }
     }
 

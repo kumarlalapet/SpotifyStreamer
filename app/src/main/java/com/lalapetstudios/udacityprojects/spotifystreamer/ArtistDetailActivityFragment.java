@@ -31,6 +31,7 @@ public class ArtistDetailActivityFragment extends Fragment implements OnAsyncTas
 
     private static final String TAG = ArtistDetailActivityFragment.class.getName();
     public static final String TRACK_DETAILS_MODEL = "TRACK_DETAILS_MODEL";
+    public static final String TRACK_DETAILS_LIST_MODEL = "TRACK_DETAILS_LIST_MODEL";
 
     RecyclerView recyclerView;
     TopTracksRecyclerAdapter topTracksRecyclerAdapter;
@@ -55,7 +56,7 @@ public class ArtistDetailActivityFragment extends Fragment implements OnAsyncTas
         recyclerView.setLayoutManager(linearLayoutManager);
 
         if( savedInstanceState != null ){
-            this.mResultList = savedInstanceState.getParcelableArrayList(TRACK_DETAILS_MODEL);
+            this.mResultList = savedInstanceState.getParcelableArrayList(TRACK_DETAILS_LIST_MODEL);
             this.createTopTracksRecyclerAdapter();
         } else {
             mapResultsFromTopTracksContentProviderToList();
@@ -68,6 +69,7 @@ public class ArtistDetailActivityFragment extends Fragment implements OnAsyncTas
                         Intent sendIntent = new Intent(view.getContext(), PlayerActivity.class);
                         Bundle b = new Bundle();
                         b.putParcelable(TRACK_DETAILS_MODEL, mResultList.get(position));
+                        b.putParcelableArrayList(TRACK_DETAILS_LIST_MODEL, mResultList);
 
                         sendIntent.putExtras(b);
                         view.getContext().startActivity(sendIntent);
@@ -81,7 +83,7 @@ public class ArtistDetailActivityFragment extends Fragment implements OnAsyncTas
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(TRACK_DETAILS_MODEL, mResultList);
+        outState.putParcelableArrayList(TRACK_DETAILS_LIST_MODEL, mResultList);
     }
 
     private void createTopTracksRecyclerAdapter() {
@@ -118,6 +120,7 @@ public class ArtistDetailActivityFragment extends Fragment implements OnAsyncTas
                 Integer previewUrlIdx = results.getColumnIndex(TopTracksByArtistContentProvider.PREVIEW_URL);
                 Integer artistsIdx = results.getColumnIndex(TopTracksByArtistContentProvider.ARTIST_NAME);
 
+                int count = 0;
                 while (results.moveToNext()) {
                     String id = results.getString(idIdx);
                     String albumCover = results.getString(albumCoverIdx);
@@ -127,8 +130,9 @@ public class ArtistDetailActivityFragment extends Fragment implements OnAsyncTas
                     String previewUrl = results.getString(previewUrlIdx);
                     String artists = results.getString(artistsIdx);
 
-                    TrackDetailsModel trackDtls = new TrackDetailsModel(id,albumCover,trackName,albumName,duration,previewUrl,artists);
+                    TrackDetailsModel trackDtls = new TrackDetailsModel(id,albumCover,trackName,albumName,duration,previewUrl,artists,count);
                     resultList.add(trackDtls);
+                    count++;
                 }
 
                 results.close();

@@ -2,18 +2,24 @@ package com.lalapetstudios.udacityprojects.spotifystreamer;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.lalapetstudios.udacityprojects.spotifystreamer.models.TrackDetailsModel;
+
 import java.util.ArrayList;
-import java.util.List;
 
 public class PlayerActivity extends AppCompatActivity {
+
+    TrackDetailsModel currentTrack;
+    ArrayList<TrackDetailsModel> trackList;
+    public ViewPager viewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,11 +30,52 @@ public class PlayerActivity extends AppCompatActivity {
         //setSupportActionBar(toolbar);
         //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        final ViewPager viewPager = (ViewPager) findViewById(R.id.playerViewPager);
+        currentTrack = (TrackDetailsModel) getIntent().getExtras().getParcelable(ArtistDetailActivityFragment.TRACK_DETAILS_MODEL);
+        trackList = (ArrayList) getIntent().getExtras().getParcelableArrayList(ArtistDetailActivityFragment.TRACK_DETAILS_LIST_MODEL);
+
+        viewPager = (ViewPager) findViewById(R.id.playerViewPager);
+
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFragmet(new PlayerFragment());
+        adapter.setTrackList(trackList);
+
+        //PagerAdapter wrappedAdapter = new InfinitePagerAdapter(adapter);
+        //viewPager.setAdapter(wrappedAdapter);
         viewPager.setAdapter(adapter);
-        viewPager.setCurrentItem(0);
+        viewPager.setOffscreenPageLimit(0);
+
+        viewPager.setCurrentItem(currentTrack.getPosition());
+
+        /**PlayerFragment playerFragment = new PlayerFragment();
+        Bundle argumentsBundle = new Bundle();
+        argumentsBundle.putParcelable(ArtistDetailActivityFragment.TRACK_DETAILS_MODEL, currentTrack);
+        argumentsBundle.putParcelableArrayList(ArtistDetailActivityFragment.TRACK_DETAILS_LIST_MODEL, trackList);
+        playerFragment.setArguments(argumentsBundle);
+
+        adapter.addFragmet(playerFragment);
+        viewPager.setAdapter(adapter);
+        viewPager.setCurrentItem(0);**/
+    }
+
+    public void goToNextPage() {
+        Runnable dirtyHack = new Runnable() {
+            @Override
+            public void run() {
+                viewPager.setCurrentItem(viewPager.getCurrentItem()+1,true);
+            }
+        };
+        Handler handler = new Handler();
+        handler.postDelayed(dirtyHack, 100);
+    }
+
+    public void goToPreviousPage() {
+        Runnable dirtyHack = new Runnable() {
+            @Override
+            public void run() {
+                viewPager.setCurrentItem(viewPager.getCurrentItem()-1,true);
+            }
+        };
+        Handler handler = new Handler();
+        handler.postDelayed(dirtyHack, 100);
     }
 
     @Override
@@ -56,8 +103,8 @@ public class PlayerActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    static class ViewPagerAdapter extends FragmentPagerAdapter {
-        private final List<Fragment> mFragmentList = new ArrayList<>();
+    static class ViewPagerAdapter extends FragmentStatePagerAdapter {
+        private ArrayList<TrackDetailsModel> trackList;
 
         public ViewPagerAdapter(FragmentManager manager) {
             super(manager);
@@ -65,18 +112,21 @@ public class PlayerActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            return mFragmentList.get(position);
+            PlayerFragment playerFragment = new PlayerFragment();
+            Bundle argumentsBundle = new Bundle();
+            argumentsBundle.putParcelable(ArtistDetailActivityFragment.TRACK_DETAILS_MODEL, trackList.get(position));
+            playerFragment.setArguments(argumentsBundle);
+            return playerFragment;
         }
 
         @Override
         public int getCount() {
-            return mFragmentList.size();
+            return trackList.size();
         }
 
-        public void addFragmet(Fragment fragment) {
-            mFragmentList.add(fragment);
+        public void setTrackList(ArrayList<TrackDetailsModel> trackList) {
+            this.trackList = trackList;
         }
-
     }
 
 }
