@@ -51,6 +51,9 @@
             android:name=".PlayerActivity"
             android:label="@string/title_activity_player" >
         </activity>
+
+        <service android:name=".MusicService"/>
+
     </application>
 
 </manifest>
