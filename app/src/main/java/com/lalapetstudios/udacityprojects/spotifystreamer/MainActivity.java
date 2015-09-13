@@ -17,7 +17,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.lalapetstudios.udacityprojects.spotifystreamer.util.GenerateSpotifyAccessToken;
 import com.lalapetstudios.udacityprojects.spotifystreamer.util.OnAsyncTaskCompletedInterface;
@@ -30,41 +29,47 @@ public class MainActivity extends AppCompatActivity implements OnAsyncTaskComple
 
     //private Toolbar toolbar;
     private static final String TAG = MainActivity.class.getName();
+    public static final String TABLAYOUT = "TABLAYOUT";
     View rootView;
+    boolean mTabLayout = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //toolbar = (Toolbar) findViewById(R.id.app_bar);
-        //this.setSupportActionBar(toolbar);
+        rootView = findViewById(R.id.mainview);
 
         final Toolbar toolbar = (Toolbar) findViewById(R.id.tabanim_toolbar);
         setSupportActionBar(toolbar);
         //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        final ViewPager viewPager = (ViewPager) findViewById(R.id.tabanim_viewpager);
-        setupViewPager(viewPager);
+        if(findViewById(R.id.tabanim_tabs) != null) {
 
-        rootView = findViewById(R.id.mainview);
+            mTabLayout = true;
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabanim_tabs);
-        tabLayout.setupWithViewPager(viewPager);
-        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                viewPager.setCurrentItem(tab.getPosition());
-            }
+            final ViewPager viewPager = (ViewPager) findViewById(R.id.tabanim_viewpager);
+            setupViewPager(viewPager);
 
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-            }
+            TabLayout tabLayout = (TabLayout) findViewById(R.id.tabanim_tabs);
+            tabLayout.setupWithViewPager(viewPager);
+            tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                @Override
+                public void onTabSelected(TabLayout.Tab tab) {
+                    viewPager.setCurrentItem(tab.getPosition());
+                }
 
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-            }
-        });
+                @Override
+                public void onTabUnselected(TabLayout.Tab tab) {
+                }
+
+                @Override
+                public void onTabReselected(TabLayout.Tab tab) {
+                }
+            });
+        } else {
+            mTabLayout = false;
+        }
 
         new AsyncTask<Void, Void, String>() {
             @Override
@@ -97,8 +102,17 @@ public class MainActivity extends AppCompatActivity implements OnAsyncTaskComple
 
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFragmet(new FeaturedPlaylistFragment(), getString(R.string.featured_playlist));
-        adapter.addFragmet(new NewReleasesFragment(), getString(R.string.new_releases));
+        Bundle bundle = new Bundle();
+        bundle.putBoolean(TABLAYOUT,mTabLayout);
+
+        FeaturedPlaylistFragment fpFragment = new FeaturedPlaylistFragment();
+        fpFragment.setArguments(bundle);
+        NewReleasesFragment nrFragment = new NewReleasesFragment();
+        nrFragment.setArguments(bundle);
+
+        adapter.addFragmet(fpFragment, getString(R.string.featured_playlist));
+        adapter.addFragmet(nrFragment, getString(R.string.new_releases));
+
         viewPager.setAdapter(adapter);
     }
 

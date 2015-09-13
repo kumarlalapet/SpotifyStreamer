@@ -15,16 +15,11 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.FeaturedPlayListRecyclerAdapter;
-import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.NewReleasesRecyclerAdapter;
-import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.TopTracksRecyclerAdapter;
 import com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.FeaturedPlayListContentProvider;
-import com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.TopTracksByArtistContentProvider;
 import com.lalapetstudios.udacityprojects.spotifystreamer.models.FeaturedPlayListModel;
-import com.lalapetstudios.udacityprojects.spotifystreamer.models.TrackDetailsModel;
 import com.lalapetstudios.udacityprojects.spotifystreamer.util.OnAsyncTaskCompletedInterface;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by g2ishan on 7/6/15.
@@ -37,6 +32,7 @@ public class FeaturedPlaylistFragment extends Fragment implements OnAsyncTaskCom
     RecyclerView recyclerView;
     FeaturedPlayListRecyclerAdapter fpRecyclerAdapter;
     ArrayList<FeaturedPlayListModel> mResultList;
+    boolean mTabLayout = false;
 
     public FeaturedPlaylistFragment() {
     }
@@ -44,13 +40,28 @@ public class FeaturedPlaylistFragment extends Fragment implements OnAsyncTaskCom
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if( savedInstanceState != null ) {
+            this.mTabLayout = savedInstanceState.getBoolean(MainActivity.TABLAYOUT);
+        } else {
+            Bundle argsBundle = getArguments();
+            if (argsBundle != null) {
+                mTabLayout = argsBundle.getBoolean(MainActivity.TABLAYOUT);
+            } else {
+                mTabLayout = false;
+            }
+        }
+
         View v = inflater.inflate(R.layout.fragment_featuredplaylist, container, false);
-
         recyclerView = (RecyclerView) v.findViewById(R.id.fp_recyclerview);
-
         recyclerView.setHasFixedSize(true);
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(v.getContext(),2);
-        recyclerView.setLayoutManager(gridLayoutManager);
+
+        if(mTabLayout) {
+            GridLayoutManager gridLayoutManager = new GridLayoutManager(v.getContext(), 2);
+            recyclerView.setLayoutManager(gridLayoutManager);
+        } else {
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(v.getContext(),LinearLayoutManager.HORIZONTAL,false);
+            recyclerView.setLayoutManager(linearLayoutManager);
+        }
 
         if( savedInstanceState != null ){
             this.mResultList = savedInstanceState.getParcelableArrayList(FEATURED_PLAYLIST_MODEL);
@@ -66,6 +77,7 @@ public class FeaturedPlaylistFragment extends Fragment implements OnAsyncTaskCom
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(FEATURED_PLAYLIST_MODEL, mResultList);
+        outState.putBoolean(MainActivity.TABLAYOUT,mTabLayout);
     }
 
     @Override

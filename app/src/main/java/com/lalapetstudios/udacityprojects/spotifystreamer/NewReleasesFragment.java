@@ -7,22 +7,19 @@ import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.FeaturedPlayListRecyclerAdapter;
 import com.lalapetstudios.udacityprojects.spotifystreamer.adapters.NewReleasesRecyclerAdapter;
-import com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.FeaturedPlayListContentProvider;
 import com.lalapetstudios.udacityprojects.spotifystreamer.contentproviders.NewReleasesContentProvider;
-import com.lalapetstudios.udacityprojects.spotifystreamer.models.FeaturedPlayListModel;
 import com.lalapetstudios.udacityprojects.spotifystreamer.models.NewReleasesModel;
 import com.lalapetstudios.udacityprojects.spotifystreamer.util.OnAsyncTaskCompletedInterface;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by g2ishan on 7/6/15.
@@ -35,6 +32,7 @@ public class NewReleasesFragment extends Fragment implements OnAsyncTaskComplete
     RecyclerView recyclerView;
     NewReleasesRecyclerAdapter nrRecyclerAdapter;
     ArrayList<NewReleasesModel> mResultList;
+    boolean mTabLayout = false;
 
     public NewReleasesFragment() {
     }
@@ -42,13 +40,29 @@ public class NewReleasesFragment extends Fragment implements OnAsyncTaskComplete
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        if( savedInstanceState != null ) {
+            this.mTabLayout = savedInstanceState.getBoolean(MainActivity.TABLAYOUT);
+        } else {
+            Bundle argsBundle = getArguments();
+            if (argsBundle != null) {
+                mTabLayout = argsBundle.getBoolean(MainActivity.TABLAYOUT);
+            } else {
+                mTabLayout = false;
+            }
+        }
+
         View v = inflater.inflate(R.layout.fragment_newreleases, container, false);
-
         recyclerView = (RecyclerView) v.findViewById(R.id.nr_recyclerview);
-
         recyclerView.setHasFixedSize(true);
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(v.getContext(),2);
-        recyclerView.setLayoutManager(gridLayoutManager);
+
+        if(mTabLayout) {
+            GridLayoutManager gridLayoutManager = new GridLayoutManager(v.getContext(),2);
+            recyclerView.setLayoutManager(gridLayoutManager);
+        } else {
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(v.getContext(),LinearLayoutManager.HORIZONTAL,false);
+            recyclerView.setLayoutManager(linearLayoutManager);
+        }
 
         if( savedInstanceState != null ){
             this.mResultList = savedInstanceState.getParcelableArrayList(NEW_RELEASES_MODEL);

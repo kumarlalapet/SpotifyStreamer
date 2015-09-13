@@ -28,4 +28,9 @@
     <dimen name="playlist_image_height">150dp</dimen>
     <dimen name="playerBarHeight">70dp</dimen>
 
+    <dimen name="featuredPlaylistHeight">220dp</dimen>
+    <dimen name="featuredPlaylistTabletSectionHeight">250dp</dimen>
+    <dimen name="newReleasesHeight">220dp</dimen>
+    <dimen name="newReleasesTabletSectionHeight">250dp</dimen>
+
 </resources>

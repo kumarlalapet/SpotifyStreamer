@@ -19,4 +19,7 @@
     <color name="rippleEffectWaveColor">#bbbbbb</color>
     <color name="whiteTransparentColor">#F0FFFFFF</color>
     <!-- END Added for the custom search bar -->
+
+    <color name="mainActivityTextColorInTablet">#000000</color>
+
 </resources>

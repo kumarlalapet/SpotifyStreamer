@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="220dp"
+    android:layout_height="@dimen/newReleasesHeight"
     android:gravity="center_vertical"
     android:padding="12dp"
     android:focusable="true"

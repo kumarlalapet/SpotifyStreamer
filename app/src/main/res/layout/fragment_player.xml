@@ -49,6 +49,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Track Name"
+                    android:textColor="@color/textPrimaryColor"
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
@@ -57,6 +58,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/trackName"
+                    android:textColor="@color/textPrimaryColor"
                     android:text="Album Name"
                     android:textSize="12sp" />
 
@@ -65,6 +67,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/albumName"
+                    android:textColor="@color/textPrimaryColor"
                     android:text="Artist Name"
                     android:textSize="12sp" />
 
