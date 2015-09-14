@@ -10,6 +10,8 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.lalapetstudios.udacityprojects.spotifystreamer.models.PreviewUrlModel;
+
 import java.util.List;
 
 /**
@@ -20,10 +22,11 @@ public class MusicService extends Service implements
         MediaPlayer.OnCompletionListener {
 
     private MediaPlayer player;
-    private List<String> songs;
+    private List<PreviewUrlModel> songs;
     private int songPosn;
     private final IBinder musicBind = new MusicBinder();
     private int mCurrentPosition;
+    public boolean restoredFromBundle = false;
 
     @Override
     public void onCreate() {
@@ -40,7 +43,7 @@ public class MusicService extends Service implements
         player.setOnErrorListener(this);
     }
 
-    public void setSongList(List<String> theSongs){
+    public void setSongList(List<PreviewUrlModel> theSongs){
         songs=theSongs;
     }
 
@@ -71,7 +74,7 @@ public class MusicService extends Service implements
 
     public void playSong(){
         player.reset();
-        Uri trackUri = Uri.parse(songs.get(songPosn));
+        Uri trackUri = Uri.parse(songs.get(songPosn).getPreviewUrl());
         try{
             player.setDataSource(getApplicationContext(), trackUri);
         }
@@ -122,9 +125,25 @@ public class MusicService extends Service implements
         mediaPlayer.start();
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if(intent.getExtras() != null)
+            restoredFromBundle = intent.getExtras().getBoolean(PlayerActivity.RESTORED_FROM_BUNDLE);
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+        if(intent.getExtras() != null)
+            restoredFromBundle = intent.getExtras().getBoolean(PlayerActivity.RESTORED_FROM_BUNDLE);
+        super.onRebind(intent);
+    }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        if(intent.getExtras() != null)
+            restoredFromBundle = intent.getExtras().getBoolean(PlayerActivity.RESTORED_FROM_BUNDLE);
         return musicBind;
     }
 

@@ -87,6 +87,11 @@ public class ArtistDetailActivityFragment extends Fragment implements OnAsyncTas
     }
 
     private void createTopTracksRecyclerAdapter() {
+        if(mResultList == null || mResultList.size() == 0) {
+            Snackbar
+                    .make(rootView, R.string.no_tracks, Snackbar.LENGTH_LONG)
+                    .show();
+        }
         topTracksRecyclerAdapter = new TopTracksRecyclerAdapter(mResultList);
         recyclerView.setAdapter(topTracksRecyclerAdapter);
     }

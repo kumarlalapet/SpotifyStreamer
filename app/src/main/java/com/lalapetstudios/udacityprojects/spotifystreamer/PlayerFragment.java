@@ -135,6 +135,11 @@ public class PlayerFragment extends Fragment {
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
     }

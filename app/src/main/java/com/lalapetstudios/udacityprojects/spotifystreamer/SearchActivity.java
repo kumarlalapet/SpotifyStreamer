@@ -152,7 +152,11 @@ public class SearchActivity extends AppCompatActivity implements OnAsyncTaskComp
                         InputMethodManager imm = (InputMethodManager)getSystemService(
                                 Context.INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(exampleView.getWindowToken(), 0);
-                    if(mResultList.size() == 0) {
+                    if(mResultList == null) {
+                        Snackbar
+                                .make(rootView, R.string.no_interent_connection_text, Snackbar.LENGTH_LONG)
+                                .show();
+                    } else if(mResultList.size() == 0) {
                         mSnackbar = Snackbar
                                 .make(rootView, R.string.no_resultfound_text, Snackbar.LENGTH_LONG);
                         mSnackbar.show();

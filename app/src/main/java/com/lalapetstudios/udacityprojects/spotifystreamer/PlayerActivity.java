@@ -1,7 +1,6 @@
 package com.lalapetstudios.udacityprojects.spotifystreamer;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.MediaPlayer;
@@ -17,29 +16,35 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.view.Window;
 
+import com.lalapetstudios.udacityprojects.spotifystreamer.models.PreviewUrlModel;
 import com.lalapetstudios.udacityprojects.spotifystreamer.models.TrackDetailsModel;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlayerActivity extends AppCompatActivity {
 
     private static final String TAG = PlayerActivity.class.getName();
 
+    public static final String CURRENT_TRACK = "CURRENT_TRACK";
+    public static final String TRACK_LIST = "TRACK_LIST";
+    public static final String SONG_LIST = "SONG_LIST";
+    public static final String RESTORED_FROM_BUNDLE = "RESTORED_FROM_BUNDLE";
+
     TrackDetailsModel currentTrack;
     ArrayList<TrackDetailsModel> trackList;
+    private boolean musicBound=false;
+    private AtomicBoolean atomicMusicBound = new AtomicBoolean(false);
+    private ArrayList<PreviewUrlModel> songList;
+
+    private boolean restoredFromBundle = false;
+
     public ViewPager viewPager;
     ViewPagerAdapter viewPagerAdapter;
 
     private MusicService musicSrv;
     private Intent playIntent;
-    private boolean musicBound=false;
-    private AtomicBoolean atomicMusicBound = new AtomicBoolean(false);
-
-    private List<String> songList;
 
     Thread updateProgressThread =  new Thread(new ProgressUpdateThread());
     private Handler updateProgressThreadHandler = new Handler();
@@ -67,9 +72,19 @@ public class PlayerActivity extends AppCompatActivity {
             //pass list
             musicSrv.setSongList(songList);
             musicBound = true;
-            Log.d(TAG,"onServiceConnected method "+"music service bound flag "+musicBound);
+            Log.d(TAG, "onServiceConnected method " + "music service bound flag " + musicBound);
 
-            atomicMusicBound.set(true);
+            Runnable dirtyHack = new Runnable() {
+                @Override
+                public void run() {
+                    if(!musicSrv.restoredFromBundle)
+                        atomicMusicBound.set(true);
+                    else
+                        updateProgressThreadHandler.post(updateProgressThread);
+                }
+            };
+            Handler handler = new Handler();
+            handler.postDelayed(dirtyHack, 100);
         }
 
         @Override
@@ -81,7 +96,6 @@ public class PlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
@@ -90,11 +104,19 @@ public class PlayerActivity extends AppCompatActivity {
         //setSupportActionBar(toolbar);
         //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        currentTrack = (TrackDetailsModel) getIntent().getExtras().getParcelable(ArtistDetailActivityFragment.TRACK_DETAILS_MODEL);
-        trackList = (ArrayList) getIntent().getExtras().getParcelableArrayList(ArtistDetailActivityFragment.TRACK_DETAILS_LIST_MODEL);
-        songList = new ArrayList<>();
-        for(TrackDetailsModel trackDetailsModel : trackList) {
-            songList.add(trackDetailsModel.getPreviewUrl());
+        if(savedInstanceState != null) {
+            currentTrack = (TrackDetailsModel) savedInstanceState.getParcelable(PlayerActivity.CURRENT_TRACK);
+            trackList = savedInstanceState.getParcelableArrayList(PlayerActivity.TRACK_LIST);
+            songList = savedInstanceState.getParcelableArrayList(PlayerActivity.SONG_LIST);
+            restoredFromBundle = true;
+        } else {
+            currentTrack = (TrackDetailsModel) getIntent().getExtras().getParcelable(ArtistDetailActivityFragment.TRACK_DETAILS_MODEL);
+            trackList = (ArrayList) getIntent().getExtras().getParcelableArrayList(ArtistDetailActivityFragment.TRACK_DETAILS_LIST_MODEL);
+            songList = new ArrayList<>();
+            for (TrackDetailsModel trackDetailsModel : trackList) {
+                songList.add(new PreviewUrlModel(trackDetailsModel.getPreviewUrl()));
+            }
+            restoredFromBundle = false;
         }
 
         viewPager = (ViewPager) findViewById(R.id.playerViewPager);
@@ -118,7 +140,9 @@ public class PlayerActivity extends AppCompatActivity {
         adapter.addFragmet(playerFragment);
         viewPager.setAdapter(adapter);
         viewPager.setCurrentItem(0);**/
+
         (new Thread(new MyRunnable(atomicMusicBound))).start();
+
         //Thread updateProgressThread =  new Thread(new ProgressUpdateThread(atomicMusicBound));
         //updateProgressThread.start();
 
@@ -126,9 +150,11 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
-                playSong(viewPager.getCurrentItem());
-                //viewPagerAdapter.
-                Log.d(TAG, "Current fragment " + viewPagerAdapter.getCurrentFragment().currentTrack.getTrackName());
+                if(!restoredFromBundle)
+                    playSong(viewPager.getCurrentItem());
+
+                //reseting once the activity started.
+                restoredFromBundle = false;
             }
         });
 
@@ -138,11 +164,22 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(CURRENT_TRACK, currentTrack);
+        outState.putParcelableArrayList(TRACK_LIST, trackList);
+        outState.putParcelableArrayList(SONG_LIST, songList);
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         if(playIntent==null){
             playIntent = new Intent(this, MusicService.class);
-            getApplicationContext().bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+            playIntent.putExtra(RESTORED_FROM_BUNDLE, restoredFromBundle);
+            //this.bindService(playIntent, musicConnection, 0);
+            //getApplicationContext().bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+            getApplicationContext().bindService(playIntent, musicConnection, 0);
             startService(playIntent);
         }
     }
@@ -164,9 +201,16 @@ public class PlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        stopService(playIntent);
-        updateProgressThreadHandler.removeCallbacks(updateProgressThread);
-        musicSrv=null;
+        if(isFinishing()) {
+            if(musicBound) {
+                //this.unbindService(musicConnection);
+                getApplicationContext().unbindService(musicConnection);
+            }
+            stopService(playIntent);
+            updateProgressThreadHandler.removeCallbacks(updateProgressThread);
+            musicSrv=null;
+        }
+
         /**if(updateProgressThread != null)
             updateProgressThread.interrupt();**/
         super.onDestroy();
@@ -195,7 +239,7 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     public void playSong(int position) {
-        Log.d(TAG, "playSong method" + " music service bound flag " + musicBound);
+        Log.d(TAG, "playSong method" + " music service bound flag " + musicBound+" "+currentTrack.getTrackName());
         musicSrv.setSong(position);
         musicSrv.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
@@ -246,10 +290,14 @@ public class PlayerActivity extends AppCompatActivity {
         @Override
         public void run() {
             Log.d(TAG, "Inside ProgressUpdateThread run");
-            if (musicSrv != null && musicSrv.isPlaying()) {
-                Log.d(TAG, "Inside ProgressUpdateThread run isPlaying");
-                viewPagerAdapter.currentFragment.updateSeekBarUIState(musicSrv.getCurrentPosition());
-                updateProgressThreadHandler.postDelayed(this, 100);
+            try {
+                if (musicSrv != null && musicSrv.isPlaying()) {
+                    Log.d(TAG, "Inside ProgressUpdateThread run isPlaying");
+                    viewPagerAdapter.currentFragment.updateSeekBarUIState(musicSrv.getCurrentPosition());
+                    updateProgressThreadHandler.postDelayed(this, 100);
+                }
+            }catch (Exception exception) {
+                //break;
             }
         }
     }

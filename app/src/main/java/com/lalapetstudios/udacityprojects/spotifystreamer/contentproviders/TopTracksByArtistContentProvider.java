@@ -111,7 +111,7 @@ public class TopTracksByArtistContentProvider extends ContentProvider {
                     artists = artists+", "+artist.name;
             }
             if(track.album.images.size() > 0)
-                data = new Object[]{track.id,track.album.images.get(0).url,track.name,track.album.name,Long.toString(track.duration_ms),track.preview_url,artists};
+                data = new Object[]{track.id,track.album.images.get(1).url,track.name,track.album.name,Long.toString(track.duration_ms),track.preview_url,artists};
             else
                 data = new Object[]{track.id,null,track.name,track.album.name,Long.toString(track.duration_ms),track.preview_url,artists};
             mc.addRow(data);
